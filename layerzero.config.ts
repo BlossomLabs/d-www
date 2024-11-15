@@ -3,18 +3,18 @@ import { ExecutorOptionType } from '@layerzerolabs/lz-v2-utilities'
 
 import type { OAppEdgeConfig, OAppOmniGraphHardhat, OmniPointHardhat } from '@layerzerolabs/toolbox-hardhat'
 
-const sepoliaContract: OmniPointHardhat = {
-    eid: EndpointId.SEPOLIA_V2_TESTNET,
+const celoContract: OmniPointHardhat = {
+    eid: EndpointId.CELO_V2_MAINNET,
     contractName: 'MyONFT721',
 }
 
 const scrollContract: OmniPointHardhat = {
-    eid: EndpointId.SCROLL_V2_TESTNET,
+    eid: EndpointId.SCROLL_V2_MAINNET,
     contractName: 'MyONFT721',
 }
 
-const amoyContract: OmniPointHardhat = {
-    eid: EndpointId.AMOY_V2_TESTNET,
+const morphContract: OmniPointHardhat = {
+    eid: EndpointId.MORPH_V2_MAINNET,
     contractName: 'MyONFT721',
 }
 
@@ -42,40 +42,40 @@ const config: OAppOmniGraphHardhat = {
             contract: scrollContract,
         },
         {
-            contract: sepoliaContract,
+            contract: celoContract,
         },
         {
-            contract: amoyContract,
+            contract: morphContract,
         },
     ],
     connections: [
         {
             from: scrollContract,
-            to: sepoliaContract,
+            to: celoContract,
             config: DEFAULT_EDGE_CONFIG,
         },
         {
             from: scrollContract,
-            to: amoyContract,
+            to: morphContract,
             config: DEFAULT_EDGE_CONFIG,
         },
         {
-            from: sepoliaContract,
+            from: celoContract,
             to: scrollContract,
             config: DEFAULT_EDGE_CONFIG,
         },
         {
-            from: sepoliaContract,
-            to: amoyContract,
+            from: celoContract,
+            to: morphContract,
             config: DEFAULT_EDGE_CONFIG,
         },
         {
-            from: amoyContract,
-            to: sepoliaContract,
+            from: morphContract,
+            to: celoContract,
             config: DEFAULT_EDGE_CONFIG,
         },
         {
-            from: amoyContract,
+            from: morphContract,
             to: scrollContract,
             config: DEFAULT_EDGE_CONFIG,
         },

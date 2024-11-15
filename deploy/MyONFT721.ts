@@ -33,19 +33,22 @@ const deploy: DeployFunction = async (hre) => {
     // }
     const endpointV2Deployment = await hre.deployments.get('EndpointV2')
 
+    const args = [
+        'MyONFT721', // name
+        'ONFT', // symbol
+        endpointV2Deployment.address, // LayerZero's EndpointV2 address
+        deployer, // owner
+    ]
+
     const { address } = await deploy(contractName, {
         from: deployer,
-        args: [
-            'MyONFT721', // name
-            'ONFT', // symbol
-            endpointV2Deployment.address, // LayerZero's EndpointV2 address
-            deployer, // owner
-        ],
+        args,
         log: true,
         skipIfAlreadyDeployed: false,
     })
 
     console.log(`Deployed contract: ${contractName}, network: ${hre.network.name}, address: ${address}`)
+    console.log(`To verify contract run: npx hardhat verify --network ${hre.network.name} ${address} ${args.join(' ')}`)
 }
 
 deploy.tags = [contractName]
