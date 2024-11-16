@@ -10,4 +10,8 @@ contract OmniName is ONFT721 {
         address _lzEndpoint,
         address _delegate
     ) ONFT721(_name, _symbol, _lzEndpoint, _delegate) {}
+
+    function mint(address to, uint256 tokenId) virtual public onlyOwner {
+        _mint(to, tokenId);
+    }
 }

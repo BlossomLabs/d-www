@@ -1,6 +1,6 @@
 # Omniname Contracts
 
-:warning: ** This code is currently under audit and should not yet be used in production. **
+:warning: ** THIS IS AN EXPERIMENTAL PROJECT. DO NOT USE THIS CODE IN PRODUCTION. **
 
 ## 1) Developing Contracts
 

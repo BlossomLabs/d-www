@@ -41,13 +41,13 @@ contract L2Registry is Ownable {
      * Properties
      */
     /// @notice Mapping of text records for each name
-    mapping(bytes32 labelhash => mapping(string key => string)) _texts;
+    mapping(bytes32 labelhash => mapping(string key => string)) internal texts;
     /// @notice Mapping of address records for each name
-    mapping(bytes32 labelhash => mapping(uint256 coinType => bytes)) _addrs;
+    mapping(bytes32 labelhash => mapping(uint256 coinType => bytes)) internal addrs;
     /// @notice Mapping of content hashes for each name
-    mapping(bytes32 labelhash => bytes) _chashes;
+    mapping(bytes32 labelhash => bytes) internal chashes;
     /// @notice Mapping of labels (names) for each labelhash
-    mapping(bytes32 labelhash => string) _labels;
+    mapping(bytes32 labelhash => string) internal labels;
 
     constructor() Ownable(msg.sender) {}
 
@@ -59,60 +59,64 @@ contract L2Registry is Ownable {
         string calldata label,
         address owner
     ) external onlyOwner {
-        bytes32 labelhash = keccak256(abi.encodePacked(label));
-        if (bytes(_labels[labelhash]).length != 0) {
+        bytes32 _labelhash = labelHash(label);
+        if (bytes(labels[_labelhash]).length != 0) {
             revert LabelAlreadyRegistered();
         }
-        _labels[labelhash] = label;
+        labels[_labelhash] = label;
         emit Registered(label, owner);
+    }
+
+    function labelHash(string memory label) public pure returns (bytes32 _labelhash) {
+        _labelhash = keccak256(abi.encodePacked(label));
     }
 
     /*
      * Resolution Functions
      */
     /// @notice Gets the Ethereum address for a name
-    /// @param labelhash The hash of the name to resolve
+    /// @param _labelhash The hash of the name to resolve
     /// @return address The Ethereum address
-    function addr(bytes32 labelhash) public view returns (address) {
-        return address(uint160(bytes20(addr(labelhash, COIN_TYPE_ETH))));
+    function addr(bytes32 _labelhash) public view returns (address) {
+        return address(uint160(bytes20(addr(_labelhash, COIN_TYPE_ETH))));
     }
 
     /// @notice Gets the address for a specific coin type
-    /// @param labelhash The hash of the name to resolve
-    /// @param cointype The coin type to fetch the address for
+    /// @param _labelhash The hash of the name to resolve
+    /// @param _cointype The coin type to fetch the address for
     /// @return bytes The address for the specified coin
     function addr(
-        bytes32 labelhash,
-        uint256 cointype
+        bytes32 _labelhash,
+        uint256 _cointype
     ) public view returns (bytes memory) {
-        return _addrs[labelhash][cointype];
+        return addrs[_labelhash][_cointype];
     }
 
     /// @notice Gets a text record
-    /// @param labelhash The hash of the name
-    /// @param key The key of the text record
+    /// @param _labelhash The hash of the name
+    /// @param _key The key of the text record
     /// @return string The value of the text record
     function text(
-        bytes32 labelhash,
-        string calldata key
+        bytes32 _labelhash,
+        string calldata _key
     ) external view returns (string memory) {
-        return _texts[labelhash][key];
+        return texts[_labelhash][_key];
     }
 
     /// @notice Gets the content hash
-    /// @param labelhash The hash of the name
+    /// @param _labelhash The hash of the name
     /// @return bytes The content hash
     function contenthash(
-        bytes32 labelhash
+        bytes32 _labelhash
     ) external view returns (bytes memory) {
-        return _chashes[labelhash];
+        return chashes[_labelhash];
     }
 
     /// @notice Gets the label (name) for a labelhash
-    /// @param labelhash The hash to lookup
+    /// @param _labelhash The hash to lookup
     /// @return string The original label
-    function labelFor(bytes32 labelhash) external view returns (string memory) {
-        return _labels[labelhash];
+    function labelFor(bytes32 _labelhash) external view returns (string memory) {
+        return labels[_labelhash];
     }
 
     /*
@@ -120,96 +124,96 @@ contract L2Registry is Ownable {
      */
 
     /// @notice Internal function to set address records
-    /// @param labelhash The name's hash
-    /// @param coinType The coin type to set address for
-    /// @param value The address value
+    /// @param _labelhash The name's hash
+    /// @param _coinType The coin type to set address for
+    /// @param _value The address value
     function _setAddr(
-        bytes32 labelhash,
-        uint256 coinType,
-        bytes memory value
+        bytes32 _labelhash,
+        uint256 _coinType,
+        bytes memory _value
     ) internal {
-        _addrs[labelhash][coinType] = value;
-        emit AddrChanged(labelhash, coinType, value);
+        addrs[_labelhash][_coinType] = _value;
+        emit AddrChanged(_labelhash, _coinType, _value);
     }
 
     /// @notice Internal function to set text records
-    /// @param labelhash The name's hash
-    /// @param key The record key
-    /// @param value The record value
+    /// @param _labelhash The name's hash
+    /// @param _key The record key
+    /// @param _value The record value
     function _setText(
-        bytes32 labelhash,
-        string memory key,
-        string memory value
+        bytes32 _labelhash,
+        string memory _key,
+        string memory _value
     ) internal {
-        _texts[labelhash][key] = value;
-        emit TextChanged(labelhash, key, value);
+        texts[_labelhash][_key] = _value;
+        emit TextChanged(_labelhash, _key, _value);
     }
 
     /// @notice Internal function to set content hash
-    /// @param labelhash The name's hash
-    /// @param value The content hash value
-    function _setContenthash(bytes32 labelhash, bytes memory value) internal {
-        _chashes[labelhash] = value;
-        emit ContenthashChanged(labelhash, value);
+    /// @param _labelhash The name's hash
+    /// @param _value The content hash value
+    function _setContenthash(bytes32 _labelhash, bytes memory _value) internal {
+        chashes[_labelhash] = _value;
+        emit ContenthashChanged(_labelhash, _value);
     }
 
     /// @notice Public function to set address records with access control
-    /// @param labelhash The name's hash
-    /// @param coinType The coin type to set address for
-    /// @param value The address value
+    /// @param _labelhash The name's hash
+    /// @param _coinType The coin type to set address for
+    /// @param _value The address value
     function setAddr(
-        bytes32 labelhash,
-        uint256 coinType,
-        bytes memory value
+        bytes32 _labelhash,
+        uint256 _coinType,
+        bytes memory _value
     ) public onlyOwner {
-        _setAddr(labelhash, coinType, value);
+        _setAddr(_labelhash, _coinType, _value);
     }
 
     /// @notice Public function to set text records with access control
-    /// @param labelhash The name's hash
-    /// @param key The record key
-    /// @param value The record value
+    /// @param _labelhash The name's hash
+    /// @param _key The record key
+    /// @param _value The record value
     function setText(
-        bytes32 labelhash,
-        string memory key,
-        string memory value
+        bytes32 _labelhash,
+        string memory _key,
+        string memory _value
     ) public onlyOwner {
-        _setText(labelhash, key, value);
+        _setText(_labelhash, _key, _value);
     }
 
     /// @notice Public function to set content hash with access control
-    /// @param labelhash The name's hash
-    /// @param value The content hash value
+    /// @param _labelhash The name's hash
+    /// @param _value The content hash value
     function setContenthash(
-        bytes32 labelhash,
-        bytes memory value
+        bytes32 _labelhash,
+        bytes memory _value
     ) public onlyOwner {
-        _setContenthash(labelhash, value);
+        _setContenthash(_labelhash, _value);
     }
 
     /// @notice Batch sets multiple records in one transaction
-    /// @param labelhash The name's hash
-    /// @param texts Array of text records to set
-    /// @param addrs Array of address records to set
-    /// @param chash Content hash to set (optional)
+    /// @param _labelhash The name's hash
+    /// @param _texts Array of text records to set
+    /// @param _addrs Array of address records to set
+    /// @param _chash Content hash to set (optional)
     function setRecords(
-        bytes32 labelhash,
-        Text[] calldata texts,
-        Addr[] calldata addrs,
-        bytes calldata chash
+        bytes32 _labelhash,
+        Text[] calldata _texts,
+        Addr[] calldata _addrs,
+        bytes calldata _chash
     ) external onlyOwner {
         uint256 i;
 
-        for (i = 0; i < texts.length; i++) {
-            _setText(labelhash, texts[i].key, texts[i].value);
+        for (i = 0; i < _texts.length; i++) {
+            _setText(_labelhash, _texts[i].key, _texts[i].value);
         }
 
-        for (i = 0; i < addrs.length; i++) {
-            _setAddr(labelhash, addrs[i].coinType, addrs[i].value);
+        for (i = 0; i < _addrs.length; i++) {
+            _setAddr(_labelhash, _addrs[i].coinType, _addrs[i].value);
         }
 
-        if (chash.length > 0) {
-            _setContenthash(labelhash, chash);
+        if (_chash.length > 0) {
+            _setContenthash(_labelhash, _chash);
         }
     }
 }
