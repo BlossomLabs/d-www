@@ -5,17 +5,17 @@ import type { OAppEdgeConfig, OAppOmniGraphHardhat, OmniPointHardhat } from '@la
 
 const celoContract: OmniPointHardhat = {
     eid: EndpointId.CELO_V2_MAINNET,
-    contractName: 'MyONFT721',
+    contractName: 'OmniName',
 }
 
 const scrollContract: OmniPointHardhat = {
     eid: EndpointId.SCROLL_V2_MAINNET,
-    contractName: 'MyONFT721',
+    contractName: 'OmniName',
 }
 
 const morphContract: OmniPointHardhat = {
     eid: EndpointId.MORPH_V2_MAINNET,
-    contractName: 'MyONFT721',
+    contractName: 'OmniName',
 }
 
 const DEFAULT_EDGE_CONFIG: OAppEdgeConfig = {

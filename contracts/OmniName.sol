@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
 import { ONFT721 } from "@layerzerolabs/onft-evm/contracts/onft721/ONFT721.sol";
 
-contract MyONFT721 is ONFT721 {
+contract OmniName is ONFT721 {
     constructor(
         string memory _name,
         string memory _symbol,
