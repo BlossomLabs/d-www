@@ -1,8 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+
+/// @notice Structure for text record updates
+/// @dev Used to prevent stack too deep errors in multicall functions
+struct Text {
+    string key;
+    string value;
+}
+
+/// @notice Structure for address record updates
+/// @dev Used to prevent stack too deep errors in multicall functions
+struct Addr {
+    uint256 coinType;
+    bytes value;
+}
 
 contract L2Registry is Ownable {
 
@@ -17,20 +30,6 @@ contract L2Registry is Ownable {
     event AddrChanged(bytes32 indexed labelhash, uint256 coinType, bytes value);
     /// @notice Emitted when a content hash is changed
     event ContenthashChanged(bytes32 indexed labelhash, bytes value);
-
-    /// @notice Structure for text record updates
-    /// @dev Used to prevent stack too deep errors in multicall functions
-    struct Text {
-        string key;
-        string value;
-    }
-
-    /// @notice Structure for address record updates
-    /// @dev Used to prevent stack too deep errors in multicall functions
-    struct Addr {
-        uint256 coinType;
-        bytes value;
-    }
 
     /*
      * Constants
