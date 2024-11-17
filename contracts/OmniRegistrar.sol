@@ -2,30 +2,25 @@
 
 pragma solidity ^0.8.22;
 
-import { OApp, MessagingFee, Origin } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import { OApp, MessagingFee, Origin, MessagingReceipt } from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import { OAppOptionsType3 } from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OAppOptionsType3.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { OmniName } from "./OmniName.sol";
 import { Text, Addr } from "./L2Registrar.sol";
-
+import { RegistrarBase } from "./RegistrarBase.sol";
 /**
  * @title OmniRegistrar contract for registering omninames to an L2Registrar of another blockchain.
  * @notice THIS IS AN EXPERIMENTAL CONTRACT. DO NOT USE THIS CODE IN PRODUCTION.
  * @dev This contract showcases a PingPong style call (A -> B -> A) using LayerZero's OApp Standard.
  * This contract acts as A, being B the L2Registrar.
  */
-contract OmniRegistrar is OApp, OAppOptionsType3 {
+contract OmniRegistrar is OApp, OAppOptionsType3, RegistrarBase {
 
     /// @notice Omnichian NFT that signals subname ownership.
     OmniName public immutable omniname;
 
     /// @notice Blockchain where the L2Registrar is
     uint32 public immutable dstEid;
-
-    /// @notice Message types that are used to identify the various OApp operations.
-    /// @dev These values are used in things like combineOptions() in OAppOptionsType3.
-    uint16 public constant SEND = 1;
-    uint16 public constant SEND_ABA = 2;
 
     event RegisterRequestSent(string label, address owner, uint32 dstEid);
     event UpdateRequestSent(string label, address owner, uint32 dstEid);
@@ -43,65 +38,34 @@ contract OmniRegistrar is OApp, OAppOptionsType3 {
         dstEid = _dstEid;
     }
 
-    function encodeRegisterMessage(string memory label, address owner, Text[] memory texts, Addr[] memory addrs, bytes memory chash) public pure returns (bytes memory, uint16) {
-        return (abi.encode(SEND_ABA, label, owner, texts, addrs, chash), SEND_ABA);
-    }
-
-    function encodeUpdateRecordsMessage(string memory label, Text[] memory texts, Addr[] memory addrs, bytes memory chash) public pure returns (bytes memory, uint16) {
-        return (abi.encode(SEND, label, address(0), texts, addrs, chash), SEND_ABA);
-    }
-
-    /**
-     * @notice Returns the estimated messaging fee for a given message.
-     * @param _msgType The type of message being sent.
-     * @param _payload The message encoded with `encodeRegisterMessage` or 
-     * @param _payInLzToken Boolean flag indicating whether to pay in LZ token.
-     * @return fee The estimated messaging fee.
-     */
     function quote(
-        uint16 _msgType,
-        bytes memory _payload,
+        uint32 _dstEid,
+        MessageParams calldata _message,
+        bytes calldata _options,
         bool _payInLzToken
     ) public view returns (MessagingFee memory fee) {
-        bytes memory options = combineOptions(dstEid, _msgType, msg.data[0:0]);
-        fee = _quote(dstEid, _payload, options, _payInLzToken);
+        bytes memory payload = abi.encode(_message._msgType, _message.label, _message.owner, _message.texts, _message.addrs, _message.chash);
+        bytes memory options = combineOptions(_dstEid, SEND_ABA, _options);
+        fee = _quote(_dstEid, payload, options, _payInLzToken);
+    }
+
+    function send(
+        uint32 _dstEid,
+        MessageParams memory _message,
+        bytes calldata _options
+    ) public payable returns (MessagingReceipt memory receipt) {
+        bytes memory _payload = abi.encode(_message._msgType, _message.label, _message.owner, _message.texts, _message.addrs, _message.chash);
+        bytes memory options = combineOptions(_dstEid, SEND_ABA, _options);
+        receipt = _lzSend(_dstEid, _payload, options, MessagingFee(msg.value, 0), payable(msg.sender));
     }
 
     function register(string memory label, address owner, Text[] memory texts, Addr[] memory addrs, bytes memory chash) public payable {
-        (bytes memory payload, uint16 msgType) = encodeRegisterMessage(label, owner, texts, addrs, chash); 
-        bytes memory options = combineOptions(dstEid, msgType, msg.data[0:0]);
-
-        _lzSend(
-            dstEid,
-            payload,
-            options,
-            // Fee in native gas and ZRO token.
-            MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
-            payable(msg.sender)
-        );
-
+        send(dstEid, MessageParams(SEND_ABA, label, owner, texts, addrs, chash), msg.data[0:0]);
         emit RegisterRequestSent(label, owner, dstEid);
     }
 
     function updateRecords(string memory label, Text[] memory texts, Addr[] memory addrs, bytes memory chash) public payable {
-        if (omniname.ownerOf(uint256(labelHash(label))) != msg.sender) {
-            revert NotOwner();
-        }
-
-        (bytes memory payload, uint16 msgType) = encodeUpdateRecordsMessage(label, texts, addrs, chash); 
-        bytes memory options = combineOptions(dstEid, msgType, msg.data[0:0]);
-
-        _lzSend(
-            dstEid,
-            payload,
-            options,
-            // Fee in native gas and ZRO token.
-            MessagingFee(msg.value, 0),
-            // Refund address in case of failed source message.
-            payable(msg.sender)
-        );
-
+        send(dstEid, MessageParams(SEND, label, address(0), texts, addrs, chash), msg.data[0:0]);
         emit UpdateRequestSent(label, msg.sender, dstEid);
     }
 
@@ -109,12 +73,6 @@ contract OmniRegistrar is OApp, OAppOptionsType3 {
         return abi.decode(encodedMessage, (string, address));
     }
 
-    /**
-     * @notice Internal function to handle receiving messages from another chain.
-     * @dev Decodes and processes the received message based on its type.
-     * @param _origin Data about the origin of the received message.
-     * @param message The received message content.
-     */
     function _lzReceive(
         Origin calldata _origin,
         bytes32 /*guid*/,
@@ -130,7 +88,7 @@ contract OmniRegistrar is OApp, OAppOptionsType3 {
     }
 
     function labelHash(string memory label) public pure returns (bytes32) {
-        return keccak256(abi.encode(label));
+        return keccak256(abi.encodePacked(label));
     }
 
     receive() external payable {}

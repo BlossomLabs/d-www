@@ -1,6 +1,7 @@
 import assert from 'assert'
 
 import { type DeployFunction } from 'hardhat-deploy/types'
+import { ethers } from 'hardhat'
 
 const contractName = 'L2Registrar'
 
@@ -46,6 +47,15 @@ const deploy: DeployFunction = async (hre) => {
 
     console.log(`Deployed contract: ${contractName}, network: ${hre.network.name}, address: ${address}`)
     console.log(`To verify contract run: npx hardhat verify --network ${hre.network.name} ${address} ${args.join(' ')}`)
+
+    // Retrieve deployed OmniName contract
+    const omniName = await ethers.getContractAt('OmniName', omninameDeployment.address)
+
+    // Change ownership of OmniName to the deployed contract
+    console.log('Changing ownership of OmniName to L2Registrar...')
+    const tx = await omniName.transferOwnership(address)
+    await tx.wait()
+    console.log('Ownership transferred successfully!')
 }
 
 deploy.tags = [contractName]

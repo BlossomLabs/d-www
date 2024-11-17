@@ -60,11 +60,15 @@ contract L2Registry is Ownable {
         address owner
     ) external onlyOwner {
         bytes32 _labelhash = labelHash(label);
-        if (bytes(labels[_labelhash]).length != 0) {
+        if (isRegistered(_labelhash)) {
             revert LabelAlreadyRegistered();
         }
         labels[_labelhash] = label;
         emit Registered(label, owner);
+    }
+
+    function isRegistered(bytes32 _labelhash) public view returns (bool) {
+        return bytes(labels[_labelhash]).length != 0;
     }
 
     function labelHash(string memory label) public pure returns (bytes32 _labelhash) {

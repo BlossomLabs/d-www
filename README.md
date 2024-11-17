@@ -36,12 +36,26 @@ To deploy your contracts to your desired blockchains, run the following command 
 
 ```bash
 npx hardhat lz:deploy
+npx hardhat verify --network <network> <contract-address> <constructor-arguments> # optional
+npx hardhat lz:oapp:wire --oapp-config layerzero.config.ts
 ```
 
-More information about available CLI arguments can be found using the `--help` flag:
+## 3) Contracts deployments
 
-```bash
-npx hardhat lz:deploy --help
-```
+**Scroll**
 
-By following these steps, you can focus more on creating innovative omnichain solutions and less on the complexities of cross-chain communication.
+| Contract | Address |
+| -------- | -------- |
+| L2Registrar | [0x39065fc36F04E9AB040d55332ff28422C48e63d2](https://scroll.blockscout.com/address/0x39065fc36F04E9AB040d55332ff28422C48e63d2) |
+| L2Registry | [0xeB39C38a4d1D3E5C1ACC45aE0896b65c6De2ad57](https://scroll.blockscout.com/address/0xeB39C38a4d1D3E5C1ACC45aE0896b65c6De2ad57) |
+| OmniName | [0x3d8Ec641793c3F5bDE837bDA7772Ec6A77D1da32](https://scroll.blockscout.com/address/0x3d8Ec641793c3F5bDE837bDA7772Ec6A77D1da32) |
+
+**Celo**
+
+| Contract | Address |
+| -------- | -------- |
+| OmniRegistrar | [0x088b8FBB4559DdAABE6BDA04A7f3165957f4Fe61](https://explorer.celo.org/mainnet/address/0x088b8FBB4559DdAABE6BDA04A7f3165957f4Fe61) |
+| OmniName | [0xd77D4d13C17d05357540B04979D875Ba29f4Fcbb](https://explorer.celo.org/mainnet/address/0xd77D4d13C17d05357540B04979D875Ba29f4Fcbb) |
+
+- You can register a subdomain by calling `register` on the `L2Registrar` contract with the following params: [EVMcrispr script](https://evmcrispr.com/#/terminal/QmcVBK2pMhULNfmaEJhPUDjYeUEHGxZoS2DxLcdSBhQ88v).
+
